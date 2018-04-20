@@ -59,9 +59,13 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
         return ip;
     }
 
+    /**
+     * 从channel读取消息
+     */
     @Override
     public void channelRead(final ChannelHandlerContext ctx, final Object msg) {
         if (msg instanceof NettyMessage) {
+        	//如果配置了线程池多线程处理请求、否则直接同步处理
             if (threadPoolExecutor != null) {
                 try {
                     threadPoolExecutor.execute(new Runnable() {
@@ -106,6 +110,7 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
         String remoteIp = getRemoteIp(ctx);
         Object result;
         try {
+        	//解码消息体
             result = codec.decode(channel, remoteIp, msg.getData());
         } catch (Exception e) {
             LoggerUtil.error("NettyDecoder decode fail! requestid" + msg.getRequestId() + ", size:" + msg.getData().length, e);
@@ -119,8 +124,10 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
             return;
         }
         if (result instanceof Request) {
+        	//执行请求处理
             processRequest(ctx, (Request) result);
         } else if (result instanceof Response) {
+        	//执行响应处理
             processResponse(result);
         }
     }
@@ -132,13 +139,20 @@ public class NettyChannelHandler extends ChannelDuplexHandler {
         return response;
     }
 
+    /**
+     * 处理请求
+     * @param ctx
+     * @param request
+     */
     private void processRequest(final ChannelHandlerContext ctx, Request request) {
         request.setAttachment(URLParamType.host.getName(), NetUtils.getHostName(ctx.channel().remoteAddress()));
         final long processStartTime = System.currentTimeMillis();
         try {
+        	//初始化RPC上下文
             RpcContext.init(request);
             Object result;
             try {
+            	//执行请求
                 result = messageHandler.handle(channel, request);
             } catch (Exception e) {
                 LoggerUtil.error("NettyChannelHandler processRequest fail! request:" + MotanFrameworkUtil.toString(request), e);

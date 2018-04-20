@@ -60,6 +60,9 @@ public class ProviderMessageRouter implements MessageHandler {
         addProvider(provider);
     }
 
+    /**
+     * 真实处理客户端请求的地方
+     */
     @Override
     public Object handle(Channel channel, Object message) {
         if (channel == null || message == null) {
@@ -72,6 +75,7 @@ public class ProviderMessageRouter implements MessageHandler {
 
         Request request = (Request) message;
 
+        //通过解析的轻轻组装key,查找注册的方法
         String serviceKey = MotanFrameworkUtil.getServiceKey(request);
 
         Provider<?> provider = providers.get(serviceKey);
@@ -87,9 +91,11 @@ public class ProviderMessageRouter implements MessageHandler {
             response.setException(exception);
             return response;
         }
+        //找到具体的方法
         Method method = provider.lookupMethod(request.getMethodName(), request.getParamtersDesc());
         fillParamDesc(request, method);
         processLazyDeserialize(request, method);
+        //执行方法
         return call(request, provider);
     }
 

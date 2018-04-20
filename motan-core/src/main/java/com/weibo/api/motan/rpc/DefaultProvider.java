@@ -61,6 +61,7 @@ public class DefaultProvider<T> extends AbstractProvider<T> {
         }
 
         try {
+        	//通过反射执行方法，返回结果
             Object value = method.invoke(proxyImpl, request.getArguments());
             response.setValue(value);
         } catch (Exception e) {

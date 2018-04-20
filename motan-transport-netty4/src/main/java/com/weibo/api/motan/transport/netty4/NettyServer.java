@@ -24,6 +24,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import java.net.InetSocketAddress;
 
 /**
+ * 服务端监听程序
  * @author sunnights
  */
 public class NettyServer extends AbstractServer implements StatisticCallback {
@@ -49,6 +50,9 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
         throw new MotanFrameworkException("NettyServer request(Request request) method not support: url: " + url);
     }
 
+    /**
+     * 启动Netty服务端监听
+     */
     @Override
     public boolean open() {
         if (isAvailable()) {
@@ -89,8 +93,12 @@ public class NettyServer extends AbstractServer implements StatisticCallback {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
                         ChannelPipeline pipeline = ch.pipeline();
+                        //添加协议加解密handler
+                        //进
                         pipeline.addLast("decoder", new NettyDecoder(codec, NettyServer.this, maxContentLength));
+                        //出
                         pipeline.addLast("encoder", new NettyEncoder());
+                        //拦截、读、写
                         pipeline.addLast("handler", new NettyChannelHandler(NettyServer.this, messageHandler, standardThreadExecutor));
                     }
                 });
