@@ -105,7 +105,10 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     protected boolean serviceExists(URL url) {
         return existingServices.contains(url.getIdentity());
     }
-
+    /**
+     * 解析service后，调用该方法暴露接口
+     * motan是一个服务一个服务的解析暴露，每个服务可以通过多种协议进行暴露，但是客户端只能使用一种协议进行调用访问。
+     */
     public synchronized void export() {
         if (exported.get()) {
             LoggerUtil.warn(String.format("%s has already been expoted, so ignore the export request!", interfaceClass.getName()));
@@ -120,6 +123,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         }
 
         Map<String, Integer> protocolPorts = getProtocolAndPort();
+        //循环暴露多种协议的服务
         for (ProtocolConfig protocolConfig : protocols) {
             Integer port = protocolPorts.get(protocolConfig.getId());
             if (port == null) {
@@ -145,6 +149,12 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         }
     }
 
+    /**
+     * 暴露服务
+     * @param protocolConfig
+     * @param port
+     * @param registryURLs
+     */
     @SuppressWarnings("unchecked")
     private void doExport(ProtocolConfig protocolConfig, int port, List<URL> registryURLs) {
         String protocolName = protocolConfig.getName();
@@ -205,9 +215,9 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             u.addParameter(URLParamType.embed.getName(), StringTools.urlEncode(serviceUrl.toFullStr()));
             registereUrls.add(u.createCopy());
         }
-
+        //根据名字通过spi加载对应的扩展类（默认是com.weibo.api.motan.config.handler.SimpleConfigHandler）
         ConfigHandler configHandler = ExtensionLoader.getExtensionLoader(ConfigHandler.class).getExtension(MotanConstants.DEFAULT_VALUE);
-
+        //在configHandler里进行暴露服务
         exporters.add(configHandler.export(interfaceClass, ref, urls));
     }
 

@@ -72,11 +72,20 @@ public class SimpleConfigHandler implements ConfigHandler {
         // export service
         // 利用protocol decorator来增加filter特性
         String protocolName = serviceUrl.getParameter(URLParamType.protocol.getName(), URLParamType.protocol.getValue());
+        //根据协议名称，spi动态加载协议处理
+        /*
+         * 	com.weibo.api.motan.protocol.injvm.InjvmProtocol
+			com.weibo.api.motan.protocol.rpc.DefaultRpcProtocol
+			com.weibo.api.motan.protocol.v2motan.MotanV2Protocol
+         * */
         Protocol orgProtocol = ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(protocolName);
         Provider<T> provider = getProvider(orgProtocol, ref, serviceUrl, interfaceClass);
 
+        /*com.weibo.api.motan.protocol.injvm.InjvmProtocol
+com.weibo.api.motan.protocol.rpc.DefaultRpcProtocol
+com.weibo.api.motan.protocol.v2motan.MotanV2Protocol*/
         Protocol protocol = new ProtocolFilterDecorator(orgProtocol);
-        Exporter<T> exporter = protocol.export(provider, serviceUrl);
+        Exporter<T> exporter = protocol.export(provider, serviceUrl); //com.weibo.api.motan.protocol.AbstractProtocol
 
         // register service
         register(registryUrls, serviceUrl);
@@ -84,6 +93,7 @@ public class SimpleConfigHandler implements ConfigHandler {
         return exporter;
     }
 
+    //创建代理
     protected <T> Provider<T> getProvider(Protocol protocol, T proxyImpl, URL url, Class<T> clz){
         if (protocol instanceof ProviderFactory){
             return ((ProviderFactory)protocol).newProvider(proxyImpl, url, clz);

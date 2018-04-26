@@ -168,7 +168,8 @@ public class AnnotationBean implements DisposableBean, BeanFactoryPostProcessor,
 
     /**
      * init service config and export servcice
-     *
+     * 代码注释: 入口一
+     * 解析service bean,初始化service 配置和暴露服务
      * @param bean
      * @param beanName
      * @return

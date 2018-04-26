@@ -39,6 +39,9 @@ public abstract class AbstractProtocol implements Protocol {
         return Collections.unmodifiableMap(exporterMap);
     }
 
+     /**
+      * 通过协议暴露服务
+      */
     @SuppressWarnings("unchecked")
     @Override
     public <T> Exporter<T> export(Provider<T> provider, URL url) {
@@ -62,6 +65,9 @@ public abstract class AbstractProtocol implements Protocol {
                         MotanErrorMsgConstant.FRAMEWORK_INIT_ERROR);
             }
 
+            /**
+             * 抽象方法，交给子类进行创建
+             */
             exporter = createExporter(provider, url);
             exporter.init();
 
